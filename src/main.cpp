@@ -20,6 +20,7 @@ lemlib::Drivetrain_t drivetrain{
     2.75, // wheel diameter
     450 // wheel rpm
 };
+//ahfucks
 lemlib::TrackingWheel vertical(&vertTracking, 2.75,0);
 lemlib::OdomSensors_t sensors {
     &vertical, // vertical tracking wheel 1
