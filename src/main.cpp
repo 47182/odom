@@ -1,5 +1,6 @@
 #include "main.h"
 #include "lemlib/api.hpp"
+#include "functions.hpp"
 
 Motor leftFrontMotor(9, pros::E_MOTOR_GEARSET_36, true); // port 1, blue gearbox, not reversed
 Motor leftMidMotor(8, pros::E_MOTOR_GEARSET_36, true); // port 2, blue gearbox, not reversed
@@ -8,10 +9,14 @@ Motor rightFrontMotor(19, pros::E_MOTOR_GEARSET_36, false); // port 4, blue gear
 Motor rightMidMotor(20, pros::E_MOTOR_GEARSET_36, false); // port 4, blue gearbox, reversed
 Motor rightBackMotor(18, pros::E_MOTOR_GEARSET_36, false); // port 4, blue gearbox, reversed
 pros::Rotation vertTracking(21, false); // port 1, not reversed
-
+ADIDigitalOut wings(1);
+ADIDigitalOut hangpiston(2);
+Motor catapult(7);
+Motor intake(16);
+Rotation rotation_sensor(17);
 MotorGroup left_side_motors({leftFrontMotor, leftBackMotor,leftMidMotor});
 MotorGroup right_side_motors({rightFrontMotor, rightBackMotor,rightMidMotor});
-pros::Imu inertial_sensor(10);
+Imu inertial_sensor(10);
 
 lemlib::Drivetrain_t drivetrain{
     &left_side_motors,// left drivetrain motors
@@ -20,7 +25,7 @@ lemlib::Drivetrain_t drivetrain{
     2.75, // wheel diameter
     450 // wheel rpm
 };
-//ahfucks
+
 lemlib::TrackingWheel vertical(&vertTracking, 2.75,0);
 lemlib::OdomSensors_t sensors {
     &vertical, // vertical tracking wheel 1
@@ -128,9 +133,46 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-	chassis.follow("text2.txt", 2000, 15);
-	chassis.
-}
+    //AWP AND ELIM AUTO
+	// chassis.follow("firsttriball.txt", 2000, 15);
+    // chassis.follow("ArcTurnPush.txt", 2000, 15);
+    // chassis.follow("TriballDescore.txt", 2000, 15);
+    // timedintake(5000,127);  
+
+    //Far side Auto
+
+    chassis.follow("Farsidebeginning.txt",2000,10);
+    timedintake(500,-127);
+    chassis.turnTo(51.062,-2.605,1000,false,200,false);
+    wings.set_value(false);
+    chassis.follow("Farside1stpush.txt",2000,10);
+    timedintake(500,127);
+    wings.set_value(true);
+    chassis.follow("FS1stintake.txt",2000,10);
+    timedintake(500,-127);
+    chassis.follow("FS3rdtriball.txt",2000,15);
+    timedintake(500,127);
+    chassis.follow("fsballdescore.txt",2000,15);
+    wings.set_value(false);
+    chassis.follow("fs2ballpush.txt",2000,15);
+    timedintake(750,-127);
+    chassis.follow("fsfinalmovement.txt",2000,15);
+    intake = 127;
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+};
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -147,19 +189,59 @@ void autonomous() {
  */
 void opcontrol() {
 	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	pros::Motor left_mtr(1);
-	pros::Motor right_mtr(2);
-
+	rotation_sensor.reset();
+	bool toggle = false;
+	bool tog = false;
+	bool hang = false;
+	bool shoot = false;
 	while (true) {
-		pros::lcd::print(0, "%d %d %d", (pros::lcd::read_buttons() & LCD_BTN_LEFT) >> 2,
-		                 (pros::lcd::read_buttons() & LCD_BTN_CENTER) >> 1,
-		                 (pros::lcd::read_buttons() & LCD_BTN_RIGHT) >> 0);
-		int left = master.get_analog(ANALOG_LEFT_Y);
-		int right = master.get_analog(ANALOG_RIGHT_Y);
+		Controller master(pros::E_CONTROLLER_MASTER);
+		int yaxis = master.get_analog(ANALOG_LEFT_Y);
+		int xaxis = master.get_analog(ANALOG_RIGHT_X);
 
-		left_mtr = left;
-		right_mtr = right;
+		Powerdrive(yaxis,xaxis);
+		
+		
+	
+		
 
-		pros::delay(20);
+		if(master.get_digital(DIGITAL_R2)){
+			catapult = -127;
+		}
+		else{
+			if((rotation_sensor.get_angle() < 12150)){
+			catapult = -100;
+			}
+			else{
+				catapult = 0;
+			}
+
+		}
+		if(master.get_digital_new_press(DIGITAL_B)){
+			hang = !hang;
+			hangpiston.set_value(hang);
+		}
+		
+
+		if(master.get_digital(DIGITAL_L1) == true){
+			intake = 110;
+		}
+		else if(master.get_digital(DIGITAL_R1) == true){
+			intake = -127;
+		}
+		else{
+			intake = 0;
+		}
+		if (master.get_digital_new_press(DIGITAL_L2) == true){
+			tog = !tog;
+			wings.set_value(tog);
+
+		}
+		
+		
+		
+		delay(20);
+		
 	}
 }
+

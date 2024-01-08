@@ -35,6 +35,7 @@
 #define PROS_USE_LITERALS
 
 #include "api.h"
+#include "functions.hpp"
 /**
  * You should add more #includes here
  */
@@ -76,10 +77,14 @@ void opcontrol(void);
  */
 //#include <iostream>
 #endif
+extern Imu   inertial_sensor;
 extern Motor leftFrontMotor;
 extern Motor leftMidMotor; 
 extern Motor leftBackMotor; 
 extern Motor rightFrontMotor; 
 extern Motor rightMidMotor; 
 extern Motor rightBackMotor;
+extern Motor intake;
+extern Motor catapult;
+extern Rotation rotation_sensor;
 #endif  // _PROS_MAIN_H_
