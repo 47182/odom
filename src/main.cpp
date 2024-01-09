@@ -5,12 +5,12 @@
 Controller controller(pros::E_CONTROLLER_MASTER);
 
 //drive motor 
-Motor leftFrontMotor(16, pros::E_MOTOR_GEARSET_36, true); // port 1, blue gearbox, not reversed
-Motor leftMidMotor(12, pros::E_MOTOR_GEARSET_36, true); // port 2, blue gearbox, not reversed
-Motor leftBackMotor(7, pros::E_MOTOR_GEARSET_36, true); // port 3, blue gearbox, reversed
-Motor rightFrontMotor(17, pros::E_MOTOR_GEARSET_36, false); // port 4, blue gearbox, reversed
-Motor rightMidMotor(18, pros::E_MOTOR_GEARSET_36, false); // port 4, blue gearbox, reversed
-Motor rightBackMotor(8, pros::E_MOTOR_GEARSET_36, false); // port 4, blue gearbox, reversed
+Motor leftFrontMotor(16, pros::E_MOTOR_GEARSET_06, true); // port 1, blue gearbox, not reversed
+Motor leftMidMotor(12, pros::E_MOTOR_GEARSET_06, true); // port 2, blue gearbox, not reversed
+Motor leftBackMotor(7, pros::E_MOTOR_GEARSET_06, true); // port 3, blue gearbox, reversed
+Motor rightFrontMotor(17, pros::E_MOTOR_GEARSET_06, false); // port 4, blue gearbox, reversed
+Motor rightMidMotor(18, pros::E_MOTOR_GEARSET_06, false); // port 4, blue gearbox, reversed
+Motor rightBackMotor(8, pros::E_MOTOR_GEARSET_06, false); // port 4, blue gearbox, reversed
 Motor catapult(10);
 Motor intake(19);
 
@@ -38,13 +38,13 @@ lemlib::Drivetrain drivetrain(
     &leftMotors, // left motor group
     &rightMotors, // right motor group
     10, // 10 inch track width
-    lemlib::Omniwheel::NEW_325, // using new 3.25" omnis
-    360, // drivetrain rpm is 360
+    lemlib::Omniwheel::NEW_275, // using new 2.75" omnis
+    450, // drivetrain rpm is 450
     8 // chase power is 2. If we had traction wheels, it would have been 8
 );
 
 // lateral motion controller
-lemlib::ControllerSettings linearController(15, // proportional gain (kP)
+lemlib::ControllerSettings linearController(4, // proportional gain (kP)
                                             0, // integral gain (kI)
                                             25, // derivative gain (kD)
                                             3, // anti windup
@@ -136,7 +136,7 @@ void competition_initialize() {}
 
 // get a path used for pure pursuit
 // this needs to be put outside a function
-ASSET(example_txt); // '.' replaced with "_" to make c++ happy
+ASSET(test_txt); // '.' replaced with "_" to make c++ happy
 
 /**
  * Runs during auto
@@ -155,29 +155,32 @@ ASSET(example_txt); // '.' replaced with "_" to make c++ happy
  * from where it left off.
  */
 void autonomous() {
-    // example movement: Move to x: 20 and y: 15, and face heading 90. Timeout set to 4000 ms
-    chassis.moveToPose(20, 15, 90, 4000);
-    // example movement: Move to x: 0 and y: 0 and face heading 270, going backwards. Timeout set to 4000ms
-    chassis.moveToPose(0, 0, 270, 4000, {.forwards = false});
-    // cancel the movement after it has travelled 10 inches
-    chassis.waitUntil(10);
-    chassis.cancelMotion();
-    // example movement: Turn to face the point x:45, y:-45. Timeout set to 1000
-    // dont turn faster than 60 (out of a maximum of 127)
-    chassis.turnTo(45, -45, 1000, true, 60);
-    // example movement: Follow the path in path.txt. Lookahead at 15, Timeout set to 4000
-    // following the path with the back of the robot (forwards = false)
-    // see line 116 to see how to define a path
-    chassis.follow(example_txt, 15, 4000, false);
-    // wait until the chassis has travelled 10 inches. Otherwise the code directly after
-    // the movement will run immediately
-    // Unless its another movement, in which case it will wait
-    chassis.waitUntil(10);
-    pros::lcd::print(4, "Travelled 10 inches during pure pursuit!");
-    // wait until the movement is done
-    chassis.waitUntilDone();
-    pros::lcd::print(4, "pure pursuit finished!");
+    chassis.setPose(0,0,0);
+    // // example movement: Move to x: 20 and y: 15, and face heading 90. Timeout set to 4000 ms
+    chassis.moveToPoint(0, -5, 4000, true, 50); 
+    // // example movement: Move to x: 0 and y: 0 and face heading 270, going backwards. Timeout set to 4000ms
+    // chassis.moveToPose(0, 0, 270, 4000, {.forwards = false});
+    // // cancel the movement after it has travelled 10 inches
+    // chassis.waitUntil(10);
+    // chassis.cancelMotion();
+    // // example movement: Turn to face the point x:45, y:-45. Timeout set to 1000
+    // // dont turn faster than 60 (out of a maximum of 127)
+    // chassis.turnTo(45, -45, 1000, true, 60);
+    // // example movement: Follow the path in path.txt. Lookahead at 15, Timeout set to 4000
+    // // following the path with the back of the robot (forwards = false)
+    // // see line 116 to see how to define a path
+    // chassis.follow(example_txt, 15, 4000, false);
+    // // wait until the chassis has travelled 10 inches. Otherwise the code directly after
+    // // the movement will run immediately
+    // // Unless its another movement, in which case it will wait
+    // chassis.waitUntil(10);
+    // pros::lcd::print(4, "Travelled 10 inches during pure pursuit!");
+    // // wait until the movement is done
+    // chassis.waitUntilDone();
+    // pros::lcd::print(4, "pure pursuit finished!");
 }
+
+    
 
 /**
  * Runs the operator control code. This function will be started in its own task
@@ -204,7 +207,7 @@ void opcontrol() {
 		int yaxis = master.get_analog(ANALOG_LEFT_Y);
 		int xaxis = master.get_analog(ANALOG_RIGHT_X);
 
-		Powerdrive(yaxis,xaxis);
+		Powerdrive(-yaxis,xaxis);
 		
 		
 	
