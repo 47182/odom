@@ -1,81 +1,84 @@
 #include "main.h"
 #include "lemlib/api.hpp"
-#include "functions.hpp"
 
-Motor leftFrontMotor(9, pros::E_MOTOR_GEARSET_36, true); // port 1, blue gearbox, not reversed
-Motor leftMidMotor(8, pros::E_MOTOR_GEARSET_36, true); // port 2, blue gearbox, not reversed
-Motor leftBackMotor(6, pros::E_MOTOR_GEARSET_36, true); // port 3, blue gearbox, reversed
-Motor rightFrontMotor(19, pros::E_MOTOR_GEARSET_36, false); // port 4, blue gearbox, reversed
-Motor rightMidMotor(20, pros::E_MOTOR_GEARSET_36, false); // port 4, blue gearbox, reversed
-Motor rightBackMotor(18, pros::E_MOTOR_GEARSET_36, false); // port 4, blue gearbox, reversed
-pros::Rotation vertTracking(21, false); // port 1, not reversed
-ADIDigitalOut wings(1);
-ADIDigitalOut hangpiston(2);
-Motor catapult(7);
-Motor intake(16);
-Rotation rotation_sensor(17);
-MotorGroup left_side_motors({leftFrontMotor, leftBackMotor,leftMidMotor});
-MotorGroup right_side_motors({rightFrontMotor, rightBackMotor,rightMidMotor});
-Imu inertial_sensor(10);
+//controller 
+Controller controller(pros::E_CONTROLLER_MASTER);
 
-lemlib::Drivetrain_t drivetrain{
-    &left_side_motors,// left drivetrain motors
-    &right_side_motors,// right drivetrain motors
-    11.25, // track width
-    2.75, // wheel diameter
-    450 // wheel rpm
-};
+//drive motor 
+Motor leftFrontMotor(16, pros::E_MOTOR_GEARSET_36, true); // port 1, blue gearbox, not reversed
+Motor leftMidMotor(12, pros::E_MOTOR_GEARSET_36, true); // port 2, blue gearbox, not reversed
+Motor leftBackMotor(7, pros::E_MOTOR_GEARSET_36, true); // port 3, blue gearbox, reversed
+Motor rightFrontMotor(17, pros::E_MOTOR_GEARSET_36, false); // port 4, blue gearbox, reversed
+Motor rightMidMotor(18, pros::E_MOTOR_GEARSET_36, false); // port 4, blue gearbox, reversed
+Motor rightBackMotor(8, pros::E_MOTOR_GEARSET_36, false); // port 4, blue gearbox, reversed
+Motor catapult(10);
+Motor intake(19);
 
-lemlib::TrackingWheel vertical(&vertTracking, 2.75,0);
-lemlib::OdomSensors_t sensors {
-    &vertical, // vertical tracking wheel 1
-    nullptr, // vertical tracking wheel 2
-    nullptr, // horizontal tracking wheel 1
-    nullptr, // we don't have a second tracking wheel, so we set it to nullptr
-    &inertial_sensor // inertial sensor
-};
+//motor groups 
+MotorGroup leftMotors({leftFrontMotor, leftBackMotor,leftMidMotor});
+MotorGroup rightMotors({rightFrontMotor, rightBackMotor,rightMidMotor});
 
-// forward/backward PID
-lemlib::ChassisController_t lateralController {
-    8, // kP
-    30, // kD
-    1, // smallErrorRange
-    100, // smallErrorTimeout
-    3, // largeErrorRange
-    500, // largeErrorTimeout
-    5 // slew rate
-};
+//inertial sensor 
+Imu inertial_sensor(1);
 
-// turning PID
-lemlib::ChassisController_t angularController {
-    4, // kP
-    40, // kD
-    1, // smallErrorRange
-    100, // smallErrorTimeout
-    3, // largeErrorRange
-    500, // largeErrorTimeout
-    0 // slew rate
-};
+//tracking wheel 
+pros::Rotation vertTracking(13, false); // port 1, not reversed
+lemlib::TrackingWheel vertical(&vertTracking, lemlib::Omniwheel::NEW_275, 0);
+
+//pneumatics 
+ADIDigitalOut wings(2);
+ADIDigitalOut hangpiston(1);
+
+//cata sensor
+Rotation rotation_sensor(2);
+
+
+// drivetrain settings
+lemlib::Drivetrain drivetrain(
+    &leftMotors, // left motor group
+    &rightMotors, // right motor group
+    10, // 10 inch track width
+    lemlib::Omniwheel::NEW_325, // using new 3.25" omnis
+    360, // drivetrain rpm is 360
+    8 // chase power is 2. If we had traction wheels, it would have been 8
+);
+
+// lateral motion controller
+lemlib::ControllerSettings linearController(15, // proportional gain (kP)
+                                            0, // integral gain (kI)
+                                            25, // derivative gain (kD)
+                                            3, // anti windup
+                                            1, // small error range, in inches
+                                            100, // small error range timeout, in milliseconds
+                                            3, // large error range, in inches
+                                            500, // large error range timeout, in milliseconds
+                                            20 // maximum acceleration (slew)
+);
+
+// angular motion controller
+lemlib::ControllerSettings angularController(2, // proportional gain (kP)
+                                             0, // integral gain (kI)
+                                             10, // derivative gain (kD)
+                                             3, // anti windup
+                                             1, // small error range, in degrees
+                                             100, // small error range timeout, in milliseconds
+                                             3, // large error range, in degrees
+                                             500, // large error range timeout, in milliseconds
+                                             20 // maximum acceleration (slew)
+);
+
+// sensors for odometry
+// note that in this example we use internal motor encoders (IMEs), so we don't pass vertical tracking wheels
+lemlib::OdomSensors sensors(&vertical, // vertical tracking wheel 1, set to null
+                            nullptr, // vertical tracking wheel 2, set to nullptr as we are using IMEs
+                            nullptr, // horizontal tracking wheel 1
+                            nullptr, // horizontal tracking wheel 2, set to nullptr as we don't have a second one
+                            &inertial_sensor // inertial sensor
+);
 
 // create the chassis
-lemlib::Chassis chassis(drivetrain, lateralController, angularController, sensors);
+lemlib::Chassis chassis(drivetrain, linearController, angularController, sensors);
 
-/**
-
- * A callback function for LLEMU's center button.
- *
- * When this callback is fiblue, it will toggle line 2 of the LCD text between
- * "I was pressed!" and nothing.
- */
-void on_center_button() {
-	static bool pressed = false;
-	pressed = !pressed;
-	if (pressed) {
-		pros::lcd::set_text(2, "I was pressed!");
-	} else {
-		pros::lcd::clear_line(2);
-	}
-}
 
 /**
  * Runs initialization code. This occurs as soon as the program is started.
@@ -84,17 +87,27 @@ void on_center_button() {
  * to keep execution time for this mode under a few seconds.
  */
 void initialize() {
-	pros::lcd::initialize();
-	chassis.calibrate();
-	chassis.setPose(0, 0, 0); // X: 0, Y: 0, Heading: 0
-    chassis.setPose(5.2, 10.333, 87); // X: 5.2, Y: 10.333, Heading: 87
-	pros::Task screenTask([&]() {
+    pros::lcd::initialize(); // initialize brain screen
+    chassis.calibrate(); // calibrate sensors
+
+    // the default rate is 50. however, if you need to change the rate, you
+    // can do the following.
+    // lemlib::bufferedStdout().setRate(...);
+    // If you use bluetooth or a wired connection, you will want to have a rate of 10ms
+
+    // for more information on how the formatting for the loggers
+    // works, refer to the fmtlib docs
+
+    // thread to for brain screen and position logging
+    pros::Task screenTask([&]() {
         lemlib::Pose pose(0, 0, 0);
         while (true) {
             // print robot location to the brain screen
             pros::lcd::print(0, "X: %f", chassis.getPose().x); // x
             pros::lcd::print(1, "Y: %f", chassis.getPose().y); // y
             pros::lcd::print(2, "Theta: %f", chassis.getPose().theta); // heading
+            // log position telemetry
+            lemlib::telemetrySink()->info("Chassis pose: {}", chassis.getPose());
             // delay to save resources
             pros::delay(50);
         }
@@ -121,6 +134,15 @@ void disabled() {}
  */
 void competition_initialize() {}
 
+// get a path used for pure pursuit
+// this needs to be put outside a function
+ASSET(example_txt); // '.' replaced with "_" to make c++ happy
+
+/**
+ * Runs during auto
+ *
+ * This is an example autonomous routine which demonstrates a lot of the features LemLib has to offer
+ */
 /**
  * Runs the user autonomous code. This function will be started in its own task
  * with the default priority and stack size whenever the robot is enabled via
@@ -133,46 +155,29 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
-    //AWP AND ELIM AUTO
-	// chassis.follow("firsttriball.txt", 2000, 15);
-    // chassis.follow("ArcTurnPush.txt", 2000, 15);
-    // chassis.follow("TriballDescore.txt", 2000, 15);
-    // timedintake(5000,127);  
-
-    //Far side Auto
-
-    chassis.follow("Farsidebeginning.txt",2000,10);
-    timedintake(500,-127);
-    chassis.turnTo(51.062,-2.605,1000,false,200,false);
-    wings.set_value(false);
-    chassis.follow("Farside1stpush.txt",2000,10);
-    timedintake(500,127);
-    wings.set_value(true);
-    chassis.follow("FS1stintake.txt",2000,10);
-    timedintake(500,-127);
-    chassis.follow("FS3rdtriball.txt",2000,15);
-    timedintake(500,127);
-    chassis.follow("fsballdescore.txt",2000,15);
-    wings.set_value(false);
-    chassis.follow("fs2ballpush.txt",2000,15);
-    timedintake(750,-127);
-    chassis.follow("fsfinalmovement.txt",2000,15);
-    intake = 127;
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-};
+    // example movement: Move to x: 20 and y: 15, and face heading 90. Timeout set to 4000 ms
+    chassis.moveToPose(20, 15, 90, 4000);
+    // example movement: Move to x: 0 and y: 0 and face heading 270, going backwards. Timeout set to 4000ms
+    chassis.moveToPose(0, 0, 270, 4000, {.forwards = false});
+    // cancel the movement after it has travelled 10 inches
+    chassis.waitUntil(10);
+    chassis.cancelMotion();
+    // example movement: Turn to face the point x:45, y:-45. Timeout set to 1000
+    // dont turn faster than 60 (out of a maximum of 127)
+    chassis.turnTo(45, -45, 1000, true, 60);
+    // example movement: Follow the path in path.txt. Lookahead at 15, Timeout set to 4000
+    // following the path with the back of the robot (forwards = false)
+    // see line 116 to see how to define a path
+    chassis.follow(example_txt, 15, 4000, false);
+    // wait until the chassis has travelled 10 inches. Otherwise the code directly after
+    // the movement will run immediately
+    // Unless its another movement, in which case it will wait
+    chassis.waitUntil(10);
+    pros::lcd::print(4, "Travelled 10 inches during pure pursuit!");
+    // wait until the movement is done
+    chassis.waitUntilDone();
+    pros::lcd::print(4, "pure pursuit finished!");
+}
 
 /**
  * Runs the operator control code. This function will be started in its own task
