@@ -5,14 +5,14 @@
 Controller controller(pros::E_CONTROLLER_MASTER);
 
 //drive motor 
-Motor leftFrontMotor(16, pros::E_MOTOR_GEARSET_06, true); // port 1, blue gearbox, not reversed
-Motor leftMidMotor(12, pros::E_MOTOR_GEARSET_06, true); // port 2, blue gearbox, not reversed
-Motor leftBackMotor(7, pros::E_MOTOR_GEARSET_06, true); // port 3, blue gearbox, reversed
-Motor rightFrontMotor(17, pros::E_MOTOR_GEARSET_06, false); // port 4, blue gearbox, reversed
-Motor rightMidMotor(18, pros::E_MOTOR_GEARSET_06, false); // port 4, blue gearbox, reversed
-Motor rightBackMotor(8, pros::E_MOTOR_GEARSET_06, false); // port 4, blue gearbox, reversed
+Motor leftFrontMotor(17, pros::E_MOTOR_GEARSET_06, true); // port 1, blue gearbox, not reversed
+Motor leftMidMotor(18, pros::E_MOTOR_GEARSET_06, true); // port 2, blue gearbox, not reversed
+Motor leftBackMotor(8, pros::E_MOTOR_GEARSET_06, true); // port 3, blue gearbox, reversed
+Motor rightFrontMotor(14, pros::E_MOTOR_GEARSET_06, false); // port 4, blue gearbox, reversed
+Motor rightMidMotor(12, pros::E_MOTOR_GEARSET_06, false); // port 4, blue gearbox, reversed
+Motor rightBackMotor(7, pros::E_MOTOR_GEARSET_06, false); // port 4, blue gearbox, reversed
 Motor catapult(10);
-Motor intake(19);
+Motor intake(20);
 
 //motor groups 
 MotorGroup leftMotors({leftFrontMotor, leftBackMotor,leftMidMotor});
@@ -26,8 +26,8 @@ pros::Rotation vertTracking(13, false); // port 1, not reversed
 lemlib::TrackingWheel vertical(&vertTracking, lemlib::Omniwheel::NEW_275, 0);
 
 //pneumatics 
-ADIDigitalOut wings(2);
-ADIDigitalOut hangpiston(1);
+ADIDigitalOut wings(1);
+ADIDigitalOut hangpiston(2);
 
 //cata sensor
 Rotation rotation_sensor(2);
@@ -44,7 +44,7 @@ lemlib::Drivetrain drivetrain(
 );
 
 // lateral motion controller
-lemlib::ControllerSettings linearController(4, // proportional gain (kP)
+lemlib::ControllerSettings linearController(8, // proportional gain (kP)
                                             0, // integral gain (kI)
                                             25, // derivative gain (kD)
                                             3, // anti windup
@@ -56,9 +56,9 @@ lemlib::ControllerSettings linearController(4, // proportional gain (kP)
 );
 
 // angular motion controller
-lemlib::ControllerSettings angularController(2, // proportional gain (kP)
+lemlib::ControllerSettings angularController(1.9, // proportional gain (kP)
                                              0, // integral gain (kI)
-                                             10, // derivative gain (kD)
+                                             5, // derivative gain (kD)
                                              3, // anti windup
                                              1, // small error range, in degrees
                                              100, // small error range timeout, in milliseconds
@@ -155,9 +155,22 @@ ASSET(test_txt); // '.' replaced with "_" to make c++ happy
  * from where it left off.
  */
 void autonomous() {
-    chassis.setPose(0,0,0);
-    // // example movement: Move to x: 20 and y: 15, and face heading 90. Timeout set to 4000 ms
-    chassis.moveToPoint(0, -5, 4000, true, 50); 
+    chassis.setPose(0,0,10.4);//Sets the robot position as the new pose
+    chassis.moveToPose(6, 51, 4, 4000); 
+    chassis.waitUntil(3);
+    intake = -127;
+    chassis.waitUntilDone();
+    intake = 0;
+    chassis.moveToPoint(0,0,1000,false);
+    chassis.moveToPose(0,0,117,2000);
+    chassis.moveToPoint(-24,16,2000,false,60);
+    chassis.waitUntilDone(); 
+    chassis.moveToPose(-24, 20, 179,2000);
+    chassis.waitUntilDone(); 
+    chassis.moveToPoint(-24,26,1000, false);
+    chassis.moveToPose(-13,4.5,137, 2000);
+   // hangpiston.set_value()
+    chassis.moveToPose(33,-1,85, 2000);
     // // example movement: Move to x: 0 and y: 0 and face heading 270, going backwards. Timeout set to 4000ms
     // chassis.moveToPose(0, 0, 270, 4000, {.forwards = false});
     // // cancel the movement after it has travelled 10 inches
@@ -207,7 +220,7 @@ void opcontrol() {
 		int yaxis = master.get_analog(ANALOG_LEFT_Y);
 		int xaxis = master.get_analog(ANALOG_RIGHT_X);
 
-		Powerdrive(-yaxis,xaxis);
+		Powerdrive(yaxis,xaxis);
 		
 		
 	
@@ -225,7 +238,7 @@ void opcontrol() {
 			}
 
 		}
-		if(master.get_digital_new_press(DIGITAL_B)){
+		if(master.get_digital_new_press(DIGITAL_L2)){
 			hang = !hang;
 			hangpiston.set_value(hang);
 		}
@@ -240,7 +253,7 @@ void opcontrol() {
 		else{
 			intake = 0;
 		}
-		if (master.get_digital_new_press(DIGITAL_L2) == true){
+		if (master.get_digital_new_press(DIGITAL_A) == true){
 			tog = !tog;
 			wings.set_value(tog);
 

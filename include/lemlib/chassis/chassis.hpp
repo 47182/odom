@@ -141,7 +141,7 @@ struct MoveToPoseParams {
         float chasePower = 0;
         float lead = 0.6;
         float maxSpeed = 127;
-        float minSpeed = 0;
+        float minSpeed = 10;
         float earlyExitRange = 0;
 };
 
