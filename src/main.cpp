@@ -46,24 +46,24 @@ lemlib::Drivetrain drivetrain(
 // lateral motion controller
 lemlib::ControllerSettings linearController(8, // proportional gain (kP)
                                             0, // integral gain (kI)
-                                            25, // derivative gain (kD)
+                                            15, // derivative gain (kD)
                                             3, // anti windup
                                             1, // small error range, in inches
                                             100, // small error range timeout, in milliseconds
                                             3, // large error range, in inches
-                                            500, // large error range timeout, in milliseconds
+                                            250, // large error range timeout, in milliseconds
                                             20 // maximum acceleration (slew)
 );
 
 // angular motion controller
-lemlib::ControllerSettings angularController(1.9, // proportional gain (kP)
+lemlib::ControllerSettings angularController(2.1, // proportional gain (kP)
                                              0, // integral gain (kI)
                                              5, // derivative gain (kD)
                                              3, // anti windup
                                              1, // small error range, in degrees
                                              100, // small error range timeout, in milliseconds
                                              3, // large error range, in degrees
-                                             500, // large error range timeout, in milliseconds
+                                             250, // large error range timeout, in milliseconds
                                              20 // maximum acceleration (slew)
 );
 
@@ -156,21 +156,36 @@ ASSET(test_txt); // '.' replaced with "_" to make c++ happy
  */
 void autonomous() {
     chassis.setPose(0,0,10.4);//Sets the robot position as the new pose
-    chassis.moveToPose(6, 51, 4, 4000); 
-    chassis.waitUntil(3);
+    chassis.moveToPose(8, 57, 4, 4500); 
+    intake = 127;
+    chassis.waitUntil(1);
     intake = -127;
+    chassis.waitUntil(5);
     chassis.waitUntilDone();
     intake = 0;
     chassis.moveToPoint(0,0,1000,false);
-    chassis.moveToPose(0,0,117,2000);
-    chassis.moveToPoint(-24,16,2000,false,60);
-    chassis.waitUntilDone(); 
-    chassis.moveToPose(-24, 20, 179,2000);
-    chassis.waitUntilDone(); 
-    chassis.moveToPoint(-24,26,1000, false);
+    intake = -127;
+    chassis.waitUntil(5);
+    chassis.waitUntilDone();
+    intake = 0;
+    chassis.moveToPose(0,0,117,1000);
+    chassis.moveToPoint(-23,14.579,2000,false,80);
+    chassis.moveToPose(-23, 15.579, 179,2000);
+    chassis.moveToPoint(-24,30,1200, false);
+    chassis.moveToPoint(-24, 16.8,1200, true);
+    chassis.waitUntilDone();
+    chassis.moveToPoint(-24,30,1000, false);
     chassis.moveToPose(-13,4.5,137, 2000);
-   // hangpiston.set_value()
-    chassis.moveToPose(33,-1,85, 2000);
+    chassis.moveToPose(-17.5,4.58,86, 2000);
+    hangpiston.set_value(true);
+    chassis.moveToPose(-11.5,4.58,90, 2000);
+    chassis.waitUntil(4);
+    hangpiston.set_value(false);
+    chassis.waitUntilDone();
+    chassis.moveToPose(33,-2,86, 2000);
+    intake = 127;
+    chassis.waitUntilDone();
+    intake = 0;
     // // example movement: Move to x: 0 and y: 0 and face heading 270, going backwards. Timeout set to 4000ms
     // chassis.moveToPose(0, 0, 270, 4000, {.forwards = false});
     // // cancel the movement after it has travelled 10 inches
@@ -230,7 +245,7 @@ void opcontrol() {
 			catapult = -127;
 		}
 		else{
-			if((rotation_sensor.get_angle() < 12150)){
+			if((rotation_sensor.get_angle() < 3900)){
 			catapult = -100;
 			}
 			else{
