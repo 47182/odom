@@ -44,7 +44,7 @@ lemlib::Drivetrain drivetrain(
 );
 
 // lateral motion controller
-lemlib::ControllerSettings linearController(8, // proportional gain (kP)
+lemlib::ControllerSettings linearController(7.5, // proportional gain (kP)
                                             0, // integral gain (kI)
                                             15, // derivative gain (kD)
                                             3, // anti windup
@@ -56,9 +56,9 @@ lemlib::ControllerSettings linearController(8, // proportional gain (kP)
 );
 
 // angular motion controller
-lemlib::ControllerSettings angularController(2.1, // proportional gain (kP)
+lemlib::ControllerSettings angularController(1.8, // proportional gain (kP)
                                              0, // integral gain (kI)
-                                             5, // derivative gain (kD)
+                                             4, // derivative gain (kD)
                                              3, // anti windup
                                              1, // small error range, in degrees
                                              100, // small error range timeout, in milliseconds
@@ -136,7 +136,7 @@ void competition_initialize() {}
 
 // get a path used for pure pursuit
 // this needs to be put outside a function
-ASSET(test_txt); // '.' replaced with "_" to make c++ happy
+ // '.' replaced with "_" to make c++ happy
 
 /**
  * Runs during auto
@@ -155,8 +155,53 @@ ASSET(test_txt); // '.' replaced with "_" to make c++ happy
  * from where it left off.
  */
 void autonomous() {
+    chassis.setPose(0,0,-34);//setting pose
+    chassis.moveToPose(-36,56,-34,2000);//move to triball
+    intake = 127;
+    chassis.waitUntil(1);
+    intake = -127;//intake
+    chassis.waitUntilDone();
+    chassis.moveToPose(-36,56,-40,500);//grasp ball
+    intake = -50;
+    chassis.moveToPoint(-1,52,2000,120);//push
+    chassis.waitUntil(1);
+    hangpiston.set_value(true);
+    intake = 127;
+    chassis.waitUntil(3);
+    intake=0;
+    chassis.waitUntilDone();
+    hangpiston.set_value(false);
+    chassis.moveToPoint(-12,52,3000,false,120);//pull
+    chassis.waitUntilDone();
+    chassis.moveToPose(-39.65,34.92,256,4000);//grab 3rd ball
+    intake = -127;
+    chassis.waitUntilDone();
+    intake = 0;
+    chassis.moveToPose(-15,-5,-180,2500);//goes to other side triball position
+    intake = -127;
+    chassis.waitUntilDone();
+    intake = 0;
+    chassis.turnTo(-10,-5,2000,true,120);
+    //chassis.turnTo(-5,0,2000,true,120);
+    chassis.moveToPose(10,12,49,3000);
+    chassis.waitUntil(5);
+    hangpiston.set_value(true);
+    chassis.waitUntilDone();
+    hangpiston.set_value(false);
+    chassis.moveToPoint(-1,0,500,false,120);
+    chassis.waitUntilDone();
+    chassis.moveToPose(14.5,20,3.33,2000);
+    intake = 55;
+    chassis.waitUntilDone();
+    chassis.moveToPoint(14.5,8,1000,false,120);
+    chassis.waitUntilDone();
+    chassis.moveToPoint(14.5,27,1000,true,127);
+    chassis.waitUntilDone();
+    chassis.moveToPoint(14.5,8,1000,false,127);
+    intake = 0;
+    /* awp 
     chassis.setPose(0,0,10.4);//Sets the robot position as the new pose
-    chassis.moveToPose(8, 57, 4, 4500); 
+    chassis.moveToPose(8, 57, 10, 450); 
     intake = 127;
     chassis.waitUntil(1);
     intake = -127;
@@ -186,6 +231,8 @@ void autonomous() {
     intake = 127;
     chassis.waitUntilDone();
     intake = 0;
+    */
+
     // // example movement: Move to x: 0 and y: 0 and face heading 270, going backwards. Timeout set to 4000ms
     // chassis.moveToPose(0, 0, 270, 4000, {.forwards = false});
     // // cancel the movement after it has travelled 10 inches
@@ -245,7 +292,7 @@ void opcontrol() {
 			catapult = -127;
 		}
 		else{
-			if((rotation_sensor.get_angle() < 3900)){
+			if((rotation_sensor.get_angle() < 3960)){
 			catapult = -100;
 			}
 			else{
