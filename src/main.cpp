@@ -169,10 +169,11 @@ void autonomous() {
     chassis.waitUntilDone();
     hangpiston.set_value(true);
     //timedcata(30000,-127);
-    timedcata(300,-127);
+    timedcata(1000,-127);
     hangpiston.set_value(false);
+    chassis.moveToPose(-12,-5,-88,2000);
+    chassis.waitUntil(1);
     resetcata();
-    chassis.moveToPose(-12,-5,-90,2000);
     chassis.waitUntilDone();
     chassis.moveToPoint(-80,-5,3000,true,95);
     intake = 127;
@@ -188,20 +189,43 @@ void autonomous() {
     chassis.moveToPoint(-105,30,1000,true,127);
     chassis.waitUntilDone();
     //before mid push
-    chassis.moveToPoint(-105,19,1500,false,127);
+    chassis.moveToPoint(-105,16,1500,false,127);
     chassis.waitUntilDone();
-    chassis.moveToPose(-90,21.5,90,1000);
+    chassis.moveToPose(-90,20.5,92,1000);
     chassis.waitUntilDone();
-    chassis.moveToPoint(-54,21.5,2000,true,100);
+    chassis.moveToPoint(-54,20.5,2000,true,100);
     chassis.waitUntilDone();
-    chassis.moveToPose(-54,21.5,-5,1000);
+    chassis.moveToPose(-54,20.5,-5,1000);
     chassis.waitUntilDone();
     chassis.moveToPose(-95,55,-90,2000);
     hangpiston.set_value(true);
     chassis.waitUntil(5);
     chassis.waitUntilDone();
+    chassis.moveToPoint(-70,55,1000,false,127);
+    chassis.moveToPoint(-100,55,1000,true,127);
+    chassis.moveToPoint(-70,55,1000,false,127); // pushing into the goal 
+    chassis.waitUntil(1);
     hangpiston.set_value(false);
-    
+    chassis.waitUntilDone();
+    chassis.moveToPoint(-54,55,1000,false,127);
+    chassis.moveToPose(-50,55,0,2000);
+    chassis.moveToPoint(-50,120,2500,false,100);
+    chassis.waitUntilDone();
+    hangpiston.set_value(true);
+    chassis.moveToPose(-83,55,-90,3000);
+    chassis.moveToPoint(-100,55,1000,true,127);
+    chassis.moveToPoint(-70,55,1000,false,127);
+    chassis.moveToPoint(-100,55,1000,true,127);
+    chassis.moveToPoint(-55,55,1000,false,100);
+    hangpiston.set_value(false);
+    /*
+    chassis.waitUntil(5);
+    chassis.waitUntilDone();
+    chassis.moveToPoint(-70,55,1000,false,127);
+    chassis.moveToPoint(-100,55,1000,true,127);
+    chassis.moveToPoint(-70,55,1000,false,127);*/
+
+
     /*
     chassis.moveToPoint(-99,28,1000,false,127);
     chassis.moveToPoint(-99,24,1000,true,127);
