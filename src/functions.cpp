@@ -174,7 +174,7 @@ void timedcata(int time, int power){
 }
 void resetcata(){
 
-	while(rotation_sensor.get_angle() < 12150){
+	while(rotation_sensor.get_angle() < 3850){
 			catapult = -127;
 	}
 	catapult = 0;
