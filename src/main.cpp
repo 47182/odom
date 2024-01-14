@@ -156,6 +156,7 @@ void competition_initialize() {}
  */
 void autonomous() {
     //  1 minute skills auto
+    
     chassis.setPose(0,0,0);
     chassis.moveToPose(10.14,18,-0.41,1500);
     intake = 100;
@@ -168,8 +169,7 @@ void autonomous() {
     chassis.waitUntil(3);
     chassis.waitUntilDone();
     hangpiston.set_value(true);
-    //timedcata(30000,-127);
-    timedcata(1000,-127);
+    timedcata(30000,-127);
     hangpiston.set_value(false);
     chassis.moveToPose(-12,-5,-88,2000);
     chassis.waitUntil(1);
@@ -191,7 +191,7 @@ void autonomous() {
     //before mid push
     chassis.moveToPoint(-105,16,1500,false,127);
     chassis.waitUntilDone();
-    chassis.moveToPose(-90,20.5,92,1000);
+    chassis.moveToPose(-90,19.5,92,1000);
     chassis.waitUntilDone();
     chassis.moveToPoint(-54,20.5,2000,true,100);
     chassis.waitUntilDone();
@@ -218,6 +218,7 @@ void autonomous() {
     chassis.moveToPoint(-100,55,1000,true,127);
     chassis.moveToPoint(-55,55,1000,false,100);
     hangpiston.set_value(false);
+    
     /*
     chassis.waitUntil(5);
     chassis.waitUntilDone();
@@ -238,7 +239,8 @@ void autonomous() {
 
 
     
-    /* working far side auto 
+    // working far side auto 
+    /*
     chassis.setPose(0,0,-34);//setting pose
     chassis.moveToPose(-36,56,-34,2000);//move to triball
     intake = 127;
@@ -283,12 +285,13 @@ void autonomous() {
     chassis.waitUntilDone();
     chassis.moveToPoint(14.5,8,1000,false,127);
     intake = 0;
+    
     */
     
-    
-    /* working awp 
-    chassis.setPose(0,0,10.4);//Sets the robot position as the new pose
-    chassis.moveToPose(8, 57, 10, 450); 
+    // working awp 
+    /*
+    chassis.setPose(0,0,10);//Sets the robot position as the new pose
+    chassis.moveToPose(8, 53, 8, 4500); 
     intake = 127;
     chassis.waitUntil(1);
     intake = -127;
@@ -301,26 +304,26 @@ void autonomous() {
     chassis.waitUntilDone();
     intake = 0;
     chassis.moveToPose(0,0,117,1000);
-    chassis.moveToPoint(-23,14.579,2000,false,80);
-    chassis.moveToPose(-23, 15.579, 179,2000);
-    chassis.moveToPoint(-24,30,1200, false);
-    chassis.moveToPoint(-24, 16.8,1200, true);
-    chassis.waitUntilDone();
-    chassis.moveToPoint(-24,30,1000, false);
-    chassis.moveToPose(-13,4.5,137, 2000);
-    chassis.moveToPose(-17.5,4.58,86, 2000);
+    chassis.moveToPoint(-21,14.579,2000,false,100);
+    chassis.moveToPose(-21, 19.579, 180,1500);
+    chassis.moveToPose(-14, 8, 124.6,1500);
+    chassis.moveToPoint(-14,3,1000,true,100);
     hangpiston.set_value(true);
-    chassis.moveToPose(-11.5,4.58,90, 2000);
-    chassis.waitUntil(4);
+    chassis.waitUntil(10);
+    chassis.moveToPose(-10,4,107,2000);
+    chassis.waitUntilDone();
     hangpiston.set_value(false);
+    chassis.moveToPose(0,2,90, 2000);
+    chassis.moveToPose(19.5,-2.58,90, 2000);
+    chassis.waitUntil(4);
     chassis.waitUntilDone();
     chassis.moveToPose(33,-2,86, 2000);
     intake = 127;
     chassis.waitUntilDone();
     intake = 0;
-    */
+    
 
-   
+   */
 }
 
     
