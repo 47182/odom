@@ -26,9 +26,9 @@ pros::Rotation vertTracking(13, false); // port 1, not reversed
 lemlib::TrackingWheel vertical(&vertTracking, lemlib::Omniwheel::NEW_275, 0);
 
 //pneumatics 
-ADIDigitalOut wings(1);
-ADIDigitalOut hangpiston(2);
-
+ADIDigitalOut wings(3);
+ADIDigitalOut hangpiston(1);
+ADIDigitalOut backwings(3);
 //cata sensor
 Rotation rotation_sensor(2);
 
@@ -168,9 +168,9 @@ void autonomous() {
     chassis.moveToPose(7.5,4.53,111,2000);
     chassis.waitUntil(3);
     chassis.waitUntilDone();
-    hangpiston.set_value(true);
+    backwings.set_value(true);
     timedcata(30000,-127);
-    hangpiston.set_value(false);
+    backwings.set_value(false);
     chassis.moveToPose(-12,-5,-88,2000);
     chassis.waitUntil(1);
     resetcata();
@@ -198,26 +198,26 @@ void autonomous() {
     chassis.moveToPose(-54,20.5,-5,1000);
     chassis.waitUntilDone();
     chassis.moveToPose(-95,55,-90,2000);
-    hangpiston.set_value(true);
+    backwings.set_value(true);
     chassis.waitUntil(5);
     chassis.waitUntilDone();
     chassis.moveToPoint(-70,55,1000,false,127);
     chassis.moveToPoint(-100,55,1000,true,127);
     chassis.moveToPoint(-70,55,1000,false,127); // pushing into the goal 
     chassis.waitUntil(1);
-    hangpiston.set_value(false);
+    backwings.set_value(false);
     chassis.waitUntilDone();
     chassis.moveToPoint(-54,55,1000,false,127);
     chassis.moveToPose(-50,55,0,2000);
     chassis.moveToPoint(-50,120,2500,false,100);
     chassis.waitUntilDone();
-    hangpiston.set_value(true);
+    backwings.set_value(true);
     chassis.moveToPose(-83,55,-90,3000);
     chassis.moveToPoint(-100,55,1000,true,127);
     chassis.moveToPoint(-70,55,1000,false,127);
     chassis.moveToPoint(-100,55,1000,true,127);
     chassis.moveToPoint(-55,55,1000,false,100);
-    hangpiston.set_value(false);
+    backwings.set_value(false);
     
     /*
     chassis.waitUntil(5);
@@ -251,12 +251,12 @@ void autonomous() {
     intake = -50;
     chassis.moveToPoint(-1,52,2000,120);//push
     chassis.waitUntil(1);
-    hangpiston.set_value(true);
+    backwings.set_value(true);
     intake = 127;
     chassis.waitUntil(3);
     intake=0;
     chassis.waitUntilDone();
-    hangpiston.set_value(false);
+    backwings.set_value(false);
     chassis.moveToPoint(-12,52,3000,false,120);//pull
     chassis.waitUntilDone();
     chassis.moveToPose(-39.65,34.92,256,4000);//grab 3rd ball
@@ -271,9 +271,9 @@ void autonomous() {
     //chassis.turnTo(-5,0,2000,true,120);
     chassis.moveToPose(10,12,49,3000);
     chassis.waitUntil(5);
-    hangpiston.set_value(true);
+    backwings.set_value(true);
     chassis.waitUntilDone();
-    hangpiston.set_value(false);
+    backwings.set_value(false);
     chassis.moveToPoint(-1,0,500,false,120);
     chassis.waitUntilDone();
     chassis.moveToPose(14.5,20,3.33,2000);
@@ -308,11 +308,11 @@ void autonomous() {
     chassis.moveToPose(-21, 19.579, 180,1500);
     chassis.moveToPose(-14, 8, 124.6,1500);
     chassis.moveToPoint(-14,3,1000,true,100);
-    hangpiston.set_value(true);
+    backwings.set_value(true);
     chassis.waitUntil(10);
     chassis.moveToPose(-10,4,107,2000);
     chassis.waitUntilDone();
-    hangpiston.set_value(false);
+    backwings.set_value(false);
     chassis.moveToPose(0,2,90, 2000);
     chassis.moveToPose(19.5,-2.58,90, 2000);
     chassis.waitUntil(4);
@@ -347,7 +347,7 @@ void opcontrol() {
 	bool toggle = false;
 	bool tog = false;
 	bool hang = false;
-	bool shoot = false;
+	bool x = false;
 	while (true) {
 		Controller master(pros::E_CONTROLLER_MASTER);
 		int yaxis = master.get_analog(ANALOG_LEFT_Y);
@@ -373,8 +373,12 @@ void opcontrol() {
 		}
 		if(master.get_digital_new_press(DIGITAL_L2)){
 			hang = !hang;
-			hangpiston.set_value(hang);
+			wings.set_value(hang);
 		}
+        if(master.get_digital_new_press(DIGITAL_R2)){
+            x =!x;
+            backwings.set_value(x);
+        }
 		
 
 		if(master.get_digital(DIGITAL_L1) == true){
@@ -388,7 +392,7 @@ void opcontrol() {
 		}
 		if (master.get_digital_new_press(DIGITAL_A) == true){
 			tog = !tog;
-			wings.set_value(tog);
+			hangpiston.set_value(tog);
 
 		}
 		

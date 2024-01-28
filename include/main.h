@@ -87,4 +87,7 @@ extern Motor rightBackMotor;
 extern Motor intake;
 extern Motor catapult;
 extern Rotation rotation_sensor;
+extern ADIDigitalOut wings;
+extern ADIDigitalOut backwings;
+extern ADIDigitalOut hangpiston;
 #endif  // _PROS_MAIN_H_
