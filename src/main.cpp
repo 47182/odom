@@ -1,34 +1,36 @@
 #include "main.h"
 #include "lemlib/api.hpp"
+#include "pros/adi.hpp"
+
 
 //controller 
 Controller controller(pros::E_CONTROLLER_MASTER);
 
 //drive motor 
-Motor leftFrontMotor(17, pros::E_MOTOR_GEARSET_06, true); // port 1, blue gearbox, not reversed
-Motor leftMidMotor(18, pros::E_MOTOR_GEARSET_06, true); // port 2, blue gearbox, not reversed
-Motor leftBackMotor(8, pros::E_MOTOR_GEARSET_06, true); // port 3, blue gearbox, reversed
-Motor rightFrontMotor(14, pros::E_MOTOR_GEARSET_06, false); // port 4, blue gearbox, reversed
-Motor rightMidMotor(12, pros::E_MOTOR_GEARSET_06, false); // port 4, blue gearbox, reversed
-Motor rightBackMotor(7, pros::E_MOTOR_GEARSET_06, false); // port 4, blue gearbox, reversed
-Motor catapult(10);
-Motor intake(20);
+Motor leftFrontMotor(12, pros::E_MOTOR_GEARSET_06, true); // port 1, blue gearbox, not reversed
+Motor leftMidMotor(15, pros::E_MOTOR_GEARSET_06, true); // port 2, blue gearbox, not reversed
+Motor leftBackMotor(14, pros::E_MOTOR_GEARSET_06, true); // port 3, blue gearbox, reversed
+Motor rightFrontMotor(13, pros::E_MOTOR_GEARSET_06, false); // port 4, blue gearbox, reversed
+Motor rightMidMotor(17, pros::E_MOTOR_GEARSET_06, false); // port 4, blue gearbox, reversed
+Motor rightBackMotor(10, pros::E_MOTOR_GEARSET_06, false); // port 4, blue gearbox, reversed
+Motor catapult(2);
+Motor intake(16);
 
 //motor groups 
 MotorGroup leftMotors({leftFrontMotor, leftBackMotor,leftMidMotor});
 MotorGroup rightMotors({rightFrontMotor, rightBackMotor,rightMidMotor});
 
 //inertial sensor 
-Imu inertial_sensor(1);
+Imu inertial_sensor(6);
 
 //tracking wheel 
-pros::Rotation vertTracking(13, false); // port 1, not reversed
+pros::Rotation vertTracking(19, false); // port 1, not reversed
 lemlib::TrackingWheel vertical(&vertTracking, lemlib::Omniwheel::NEW_275, 0);
 
 //pneumatics 
 ADIDigitalOut wings(3);
 ADIDigitalOut hangpiston(1);
-ADIDigitalOut backwings(3);
+ADIDigitalOut backwings(2);
 //cata sensor
 Rotation rotation_sensor(2);
 
@@ -44,7 +46,7 @@ lemlib::Drivetrain drivetrain(
 );
 
 // lateral motion controller
-lemlib::ControllerSettings linearController(7.5, // proportional gain (kP)
+lemlib::ControllerSettings linearController(7.0, // proportional gain (kP)
                                             0, // integral gain (kI)
                                             15, // derivative gain (kD)
                                             3, // anti windup
@@ -155,8 +157,80 @@ void competition_initialize() {}
  * from where it left off.
  */
 void autonomous() {
+
+  chassis.setPose(0,0,10.4);//Sets the robot position as the new pose
+    chassis.moveToPose(8, 54, 10, 3000); //drive to first triball
+    intake = 127; //takes off rubberbadns
+    chassis.waitUntil(1); 
+    intake = -127; //intake the other way for triball
+    chassis.waitUntil(5); 
+    chassis.waitUntilDone();
+    intake = 30; //turn off intake after triball is intaked
+    chassis.moveToPoint(8, 45, 1000, false);//goes back by bit
+    chassis.waitUntilDone();//finishes movetopoint
+    chassis.moveToPose(8, 45, 90, 1000,{.forwards=true, .minSpeed = 20});
+    chassis.waitUntilDone();
+    chassis.moveToPoint(30, 48, 1000, true);//moves FORWARD
+    wings.set_value(true);//
+    chassis.waitUntilDone();//finishes move
+    intake = 0;//turns off intake
+    wings.set_value(false);//closes wings
+    chassis.moveToPose(-12,-1,50,3500, {.forwards=false, .lead=0.08});//goes to the bar
+    chassis.waitUntilDone();
+    chassis.moveToPose(-12,-1,-75,1500, {.forwards=false, .lead=0.08});//turns to get corner triball
+    backwings.set_value(1);//gets corner triball
+    chassis.waitUntilDone();
+    chassis.moveToPose(18,-3,94,3500, {.forwards=true, .lead=0.05});//touches hanging bar
+    backwings.set_value(0);
+    intake = 127;//turns on intake
+    chassis.waitUntilDone();
+    /*chassis.moveToPoint(0,0,1000,false); //
+    intake = -127;
+    chassis.waitUntil(5);
+    chassis.waitUntilDone();
+    intake = 0;
+    chassis.moveToPose(-10.5,2,-53,1000);
+    delay(1000);
+    chassis.moveToPose(-24 ,16.5, 0,2000);
+        delay(1000);
+    chassis.moveToPose(-20,5.5,-47,2000);
+        delay(1000);
+    chassis.moveToPoint(-13,0.5,1000,false,80);
+        delay(1000);
+    backwings.set_value(true);
+    chassis.waitUntil(2);
+    chassis.waitUntilDone();
+    backwings.set_value(false);
+   chassis.moveToPose(-13, 0.5, -79, 1000);
+       delay(1000);
+ chassis.moveToPose(-13, 0.5, -51, 1000);
+     delay(1000);
+chassis.moveToPose(3.5, 0, 82.8, 2000);
+    delay(1000);
+  chassis.moveToPose(33,-2,86, 2000);
+
+
+
+
+   // chassis.moveToPose(3.5, 0, 119, 2000);
+    // chassis.moveToPoint(-15,7,-52, false);
+   // chassis.moveToPoint(-24, 16.8,1200, true);
+  //  chassis.waitUntilDone();
+   // chassis.moveToPoint(-24,30,1000, false);
+   /*chassis.moveToPose(-13,4.5,137, 2000);
+    chassis.moveToPose(-17.5,4.58,86, 2000);
+    backwings.set_value(true);
+    chassis.moveToPose(-11.5,4.58,90, 2000);
+    chassis.waitUntil(4);
+    backwings.set_value(false);
+    chassis.waitUntilDone();
+    chassis.moveToPose(33,-2,86, 2000);
+    intake = 127;
+    chassis.waitUntilDone();
+    intake = 0;
+    */
     //  1 minute skills auto
-    
+    /*
     chassis.setPose(0,0,0);
     chassis.moveToPose(10.14,18,-0.41,1500);
     intake = 100;
@@ -168,9 +242,10 @@ void autonomous() {
     chassis.moveToPose(7.5,4.53,111,2000);
     chassis.waitUntil(3);
     chassis.waitUntilDone();
-    backwings.set_value(true);
-    timedcata(30000,-127);
-    backwings.set_value(false);
+    hangpiston.set_value(true);
+    //timedcata(30000,-127);
+    timedcata(1000,-127);
+    hangpiston.set_value(false);
     chassis.moveToPose(-12,-5,-88,2000);
     chassis.waitUntil(1);
     resetcata();
@@ -191,47 +266,37 @@ void autonomous() {
     //before mid push
     chassis.moveToPoint(-105,16,1500,false,127);
     chassis.waitUntilDone();
-    chassis.moveToPose(-90,19.5,92,1000);
+    chassis.moveToPose(-90,20.5,92,1000);
     chassis.waitUntilDone();
     chassis.moveToPoint(-54,20.5,2000,true,100);
     chassis.waitUntilDone();
     chassis.moveToPose(-54,20.5,-5,1000);
     chassis.waitUntilDone();
     chassis.moveToPose(-95,55,-90,2000);
-    backwings.set_value(true);
+    hangpiston.set_value(true);
     chassis.waitUntil(5);
     chassis.waitUntilDone();
     chassis.moveToPoint(-70,55,1000,false,127);
     chassis.moveToPoint(-100,55,1000,true,127);
     chassis.moveToPoint(-70,55,1000,false,127); // pushing into the goal 
     chassis.waitUntil(1);
-    backwings.set_value(false);
+    hangpiston.set_value(false);
     chassis.waitUntilDone();
     chassis.moveToPoint(-54,55,1000,false,127);
     chassis.moveToPose(-50,55,0,2000);
     chassis.moveToPoint(-50,120,2500,false,100);
     chassis.waitUntilDone();
-    backwings.set_value(true);
+    hangpiston.set_value(true);
     chassis.moveToPose(-83,55,-90,3000);
     chassis.moveToPoint(-100,55,1000,true,127);
     chassis.moveToPoint(-70,55,1000,false,127);
     chassis.moveToPoint(-100,55,1000,true,127);
     chassis.moveToPoint(-55,55,1000,false,100);
-    backwings.set_value(false);
-    
-    /*
-    chassis.waitUntil(5);
-    chassis.waitUntilDone();
-    chassis.moveToPoint(-70,55,1000,false,127);
-    chassis.moveToPoint(-100,55,1000,true,127);
-    chassis.moveToPoint(-70,55,1000,false,127);*/
+    hangpiston.set_value(false);
+  
+    */
 
 
-    /*
-    chassis.moveToPoint(-99,28,1000,false,127);
-    chassis.moveToPoint(-99,24,1000,true,127);
-    chassis.moveToPoint(-99,28,1000,false,127);*/
-    
 
 
 
@@ -239,8 +304,7 @@ void autonomous() {
 
 
     
-    // working far side auto 
-    /*
+    /* working far side auto 
     chassis.setPose(0,0,-34);//setting pose
     chassis.moveToPose(-36,56,-34,2000);//move to triball
     intake = 127;
@@ -251,12 +315,12 @@ void autonomous() {
     intake = -50;
     chassis.moveToPoint(-1,52,2000,120);//push
     chassis.waitUntil(1);
-    backwings.set_value(true);
+    hangpiston.set_value(true);
     intake = 127;
     chassis.waitUntil(3);
     intake=0;
     chassis.waitUntilDone();
-    backwings.set_value(false);
+    hangpiston.set_value(false);
     chassis.moveToPoint(-12,52,3000,false,120);//pull
     chassis.waitUntilDone();
     chassis.moveToPose(-39.65,34.92,256,4000);//grab 3rd ball
@@ -271,9 +335,9 @@ void autonomous() {
     //chassis.turnTo(-5,0,2000,true,120);
     chassis.moveToPose(10,12,49,3000);
     chassis.waitUntil(5);
-    backwings.set_value(true);
+    hangpiston.set_value(true);
     chassis.waitUntilDone();
-    backwings.set_value(false);
+    hangpiston.set_value(false);
     chassis.moveToPoint(-1,0,500,false,120);
     chassis.waitUntilDone();
     chassis.moveToPose(14.5,20,3.33,2000);
@@ -285,13 +349,12 @@ void autonomous() {
     chassis.waitUntilDone();
     chassis.moveToPoint(14.5,8,1000,false,127);
     intake = 0;
-    
     */
     
-    // working awp 
-    /*
-    chassis.setPose(0,0,10);//Sets the robot position as the new pose
-    chassis.moveToPose(8, 53, 8, 4500); 
+    
+    /* working awp 
+    chassis.setPose(0,0,10.4);//Sets the robot position as the new pose
+    chassis.moveToPose(8, 57, 10, 3000); 
     intake = 127;
     chassis.waitUntil(1);
     intake = -127;
@@ -304,26 +367,26 @@ void autonomous() {
     chassis.waitUntilDone();
     intake = 0;
     chassis.moveToPose(0,0,117,1000);
-    chassis.moveToPoint(-21,14.579,2000,false,100);
-    chassis.moveToPose(-21, 19.579, 180,1500);
-    chassis.moveToPose(-14, 8, 124.6,1500);
-    chassis.moveToPoint(-14,3,1000,true,100);
-    backwings.set_value(true);
-    chassis.waitUntil(10);
-    chassis.moveToPose(-10,4,107,2000);
+    chassis.moveToPoint(-23,14.579,2000,false,80);
+    chassis.moveToPose(-23, 15.579, 179,2000);
+    chassis.moveToPoint(-24,30,1200, false);
+    chassis.moveToPoint(-24, 16.8,1200, true);
     chassis.waitUntilDone();
-    backwings.set_value(false);
-    chassis.moveToPose(0,2,90, 2000);
-    chassis.moveToPose(19.5,-2.58,90, 2000);
+    chassis.moveToPoint(-24,30,1000, false);
+    chassis.moveToPose(-13,4.5,137, 2000);
+    chassis.moveToPose(-17.5,4.58,86, 2000);
+    hangpiston.set_value(true);
+    chassis.moveToPose(-11.5,4.58,90, 2000);
     chassis.waitUntil(4);
+    hangpiston.set_value(false);
     chassis.waitUntilDone();
     chassis.moveToPose(33,-2,86, 2000);
     intake = 127;
     chassis.waitUntilDone();
     intake = 0;
-    
+    */
 
-   */
+   
 }
 
     
@@ -342,64 +405,63 @@ void autonomous() {
  * task, not resume it from where it left off.
  */
 void opcontrol() {
-	pros::Controller master(pros::E_CONTROLLER_MASTER);
-	rotation_sensor.reset();
-	bool toggle = false;
-	bool tog = false;
-	bool hang = false;
-	bool x = false;
-	while (true) {
-		Controller master(pros::E_CONTROLLER_MASTER);
-		int yaxis = master.get_analog(ANALOG_LEFT_Y);
-		int xaxis = master.get_analog(ANALOG_RIGHT_X);
+    pros::Controller master(pros::E_CONTROLLER_MASTER);
+    rotation_sensor.reset();
+    bool toggle = false;
+    bool tog = false;
+    bool hang = false;
+    bool x = false;
+    while (true) {
+        Controller master(pros::E_CONTROLLER_MASTER);
+        int yaxis = master.get_analog(ANALOG_LEFT_Y);
+        int xaxis = master.get_analog(ANALOG_RIGHT_X);
 
-		Powerdrive(yaxis,xaxis);
-		
-		
-	
-		
+        Powerdrive(yaxis,xaxis);
+        
+        
+    
+        
 
-		if(master.get_digital(DIGITAL_R2)){
-			catapult = -127;
-		}
-		else{
-			if((rotation_sensor.get_angle() < 3900)){
-			catapult = -127;
-			}
-			else{
-				catapult = 0;
-			}
+        if(master.get_digital(DIGITAL_Y)){
+            catapult = 110;
+        }
+        else{
+            if((rotation_sensor.get_angle() < 3900)){
+            catapult = 115;
+            }
+            else{
+                catapult = 0;
+            }
 
-		}
-		if(master.get_digital_new_press(DIGITAL_L2)){
-			hang = !hang;
-			wings.set_value(hang);
-		}
+        }
+        if(master.get_digital_new_press(DIGITAL_L2)){
+            hang = !hang;
+            wings.set_value(hang);
+        }
+        
+
+        if(master.get_digital(DIGITAL_L1) == true){
+            intake = 117;
+        }
+        else if(master.get_digital(DIGITAL_R1) == true){
+            intake = -127;
+        }
+        else{
+            intake = 0;
+        }
+        if (master.get_digital_new_press(DIGITAL_A) == true){
+            tog = !tog;
+            hangpiston.set_value(tog);
+
+        }
         if(master.get_digital_new_press(DIGITAL_R2)){
             x =!x;
             backwings.set_value(x);
         }
-		
-
-		if(master.get_digital(DIGITAL_L1) == true){
-			intake = 110;
-		}
-		else if(master.get_digital(DIGITAL_R1) == true){
-			intake = -127;
-		}
-		else{
-			intake = 0;
-		}
-		if (master.get_digital_new_press(DIGITAL_A) == true){
-			tog = !tog;
-			hangpiston.set_value(tog);
-
-		}
-		
-		
-		
-		delay(20);
-		
-	}
+        
+        
+        
+        delay(20);
+        
+    }
 }
-
